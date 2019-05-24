@@ -1,0 +1,25 @@
+{
+    "name": "moecasts/laravel-wallet",
+    "description": "A laravel wallet package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "MoeCasts",
+            "email": "moecasts.caster@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Moecasts\\Laravel\\Wallet\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Moecasts\\Laravel\\Wallet\\WalletServiceProvider"
+            ]
+        }
+    }
+}
