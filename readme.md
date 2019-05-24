@@ -180,9 +180,9 @@ use Moecasts\Laravel\Wallet\Interfaces\Product;
 
 class Item extends Model implements Product
 {
-	use HasWallets;
-	
-	public function canBePaid(): bool
+    use HasWallets;
+    
+    public function canBePaid(): bool
     {
         return true;
     }
@@ -224,12 +224,12 @@ use Moecasts\Laravel\Wallet\Interfaces\Product;
 
 class Item extends Model implements Product
 {
-	public function author(): BelongsTo
+    public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-	
-	public function canBePaid(): bool
+    
+    public function canBePaid(): bool
     {
         return true;
     }
@@ -289,9 +289,9 @@ use Moecasts\Laravel\Wallet\Interfaces\Refundable;
 
 class Item extends Model implements Product, Refundable
 {
-	use HasWallets;
-	
-	public function canBePaid(): bool
+    use HasWallets;
+    
+    public function canBePaid(): bool
     {
         return true;
     }
