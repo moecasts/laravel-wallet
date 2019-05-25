@@ -8,7 +8,7 @@ class WalletProxy
     /**
      * @var array
      */
-    protected static $rows = [];
+    protected static $data = [];
 
     /**
      * @param int $key
@@ -16,16 +16,16 @@ class WalletProxy
      */
     public static function has(int $key): bool
     {
-        return \array_key_exists($key, static::$rows);
+        return \array_key_exists($key, static::$data);
     }
 
     /**
      * @param int $key
      * @return int
      */
-    public static function get(int $key): int
+    public static function get(int $key): float
     {
-        return (int)(static::$rows[$key] ?? 0);
+        return (float) (static::$data[$key] ?? 0);
     }
 
     /**
@@ -33,9 +33,9 @@ class WalletProxy
      * @param int $value
      * @return bool
      */
-    public static function set(int $key, int $value): bool
+    public static function set(int $key, float $value): bool
     {
-        static::$rows[$key] = $value;
+        static::$data[$key] = $value;
         return true;
     }
 
@@ -44,7 +44,7 @@ class WalletProxy
      */
     public static function fresh(): void
     {
-        static::$rows = [];
+        static::$data = [];
     }
 
 }

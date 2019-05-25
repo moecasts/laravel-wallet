@@ -60,4 +60,56 @@ class RefundTest extends TestCase
 
         $this->assertEquals($refund, false);
     }
+
+    /**
+      * @expectedException     Illuminate\Database\Eloquent\ModelNotFoundException
+      */
+    public function testWalletRefund()
+    {
+        $user = User::firstOrCreate(['name' => 'Test User']);
+
+        $product = Product::firstOrCreate([
+            'name' => 'Product Item',
+            'price' => 233,
+            'quantity' => 10
+        ]);
+
+        $wallet = $user->getWallet('POI');
+
+        $wallet->deposit(233);
+        $this->assertEquals($wallet->balance, 233);
+
+        $payment = $wallet->pay($product);
+        $this->assertEquals($wallet->balance, 0);
+
+        $this->assertEquals((bool) $wallet->paid($product), true);
+
+        $refund = $wallet->refund($product);
+
+        $this->assertEquals($refund, true);
+
+        $this->assertEquals((bool) $wallet->paid($product), false);
+
+        $wallet = $user->getWallet('POI');
+        $this->assertEquals($wallet->balance, 233);
+
+        $wallet->refund($product);
+    }
+
+    public function testWalletSafeRefund()
+    {
+        $user = User::firstOrCreate(['name' => 'Test User']);
+
+        $product = Product::firstOrCreate([
+            'name' => 'Product Item',
+            'price' => 233,
+            'quantity' => 10
+        ]);
+
+        $wallet = $user->getWallet('POI');
+
+        $refund = $wallet->safeRefund($product);
+
+        $this->assertEquals($refund, false);
+    }
 }

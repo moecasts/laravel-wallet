@@ -4,6 +4,7 @@ namespace Moecasts\Laravel\Wallet\Test;
 
 use Moecasts\Laravel\Wallet\Test\Models\User;
 use Moecasts\Laravel\Wallet\Test\TestCase;
+use Moecasts\Laravel\Wallet\WalletProxy;
 
 class WalletTest extends TestCase
 {
@@ -30,6 +31,16 @@ class WalletTest extends TestCase
             $createWallet->getKey(),
             $getWallet->getKey()
         );
+    }
+
+    /**
+     * @expectedException Moecasts\Laravel\Wallet\Exceptions\CurrencyInvalid
+     */
+    public function testInvalidWallet()
+    {
+        $user = User::firstOrCreate(['name' => 'Test User']);
+
+        $getWallet = $user->getWallet('233');
     }
 
     /**
@@ -95,6 +106,10 @@ class WalletTest extends TestCase
 
         $firstDeposit = $firstWallet->deposit(233);
         $this->assertEquals($firstWallet->balance, 233);
+        // test holder
+        $this->assertEquals($firstDeposit->holder->name, $user->name);
+        // test wallet
+        $this->assertEquals($firstDeposit->wallet->getKey(), $firstWallet->getKey());
 
         $firstWithdraw = $firstWallet->withdraw(233);
         $this->assertEquals($firstWithdraw->balance, 0);
@@ -114,6 +129,7 @@ class WalletTest extends TestCase
         $withdrawTransactionKeys = $user->transactions()->withdraw()->get()->pluck('id')->toArray();
         $this->assertEquals($withdrawTransactionKeys, [$firstWithdraw->getKey()]);
 
+
     }
 
     public function testRefreshBalance()
@@ -129,6 +145,8 @@ class WalletTest extends TestCase
         $wallet->update([
             'balance' => 0
         ]);
+
+        WalletProxy::set($wallet->getKey(), 0);
 
         $this->assertEquals($wallet->balance, 0);
 
