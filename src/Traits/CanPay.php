@@ -32,6 +32,11 @@ trait CanPay {
         );
     }
 
+    public function forcePay(Product $product, string $action = Transfer::ACTION_PAID): Transfer
+    {
+        return $this->pay($product, $action, true);
+    }
+
     public function safePay(Product $product, string $action = Transfer::ACTION_PAID, bool $force = false): ?Transfer
     {
         try {

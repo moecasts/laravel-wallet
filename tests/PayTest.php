@@ -35,6 +35,27 @@ class PayTest extends TestCase
         $wallet->pay($product);
     }
 
+    public function testforcePay()
+    {
+        $user = User::firstOrCreate(['name' => 'Test User']);
+
+        $product = Product::firstOrCreate([
+            'name' => 'Product Item',
+            'price' => 233,
+            'quantity' => 10
+        ]);
+
+        $wallet = $user->getWallet('POI');
+
+        $this->assertEquals($wallet->balance, 0);
+
+        $payment = $wallet->forcePay($product);
+        $this->assertEquals($wallet->balance, -233);
+
+        $transfer = $wallet->transfers()->where('action', 'paid')->first();
+        $this->assertEquals($transfer->getKey(), $payment->getKey());
+    }
+
     /**
       * @expectedException     Moecasts\Laravel\Wallet\Exceptions\ProductEnded
       */
