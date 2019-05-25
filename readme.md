@@ -1,6 +1,10 @@
 # Wallet
 
 [![Build Status](https://www.travis-ci.org/MoeCasts/laravel-wallet.svg?branch=master)](https://www.travis-ci.org/MoeCasts/laravel-wallet)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/build.png?b=master)](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/build-status/master)
+[![Code Intelligence Status](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/code-intelligence.svg?b=master)](https://scrutinizer-ci.com/code-intelligence)
 
 ## Feature
 

@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 use Moecasts\Laravel\Wallet\Exceptions\AmountInvalid;
 use Moecasts\Laravel\Wallet\Exceptions\InsufficientFunds;
-use Moecasts\Laravel\Wallet\Interfaces\Taxing;
 use Moecasts\Laravel\Wallet\Interfaces\Transferable;
 use Moecasts\Laravel\Wallet\Models\Transaction;
 use Moecasts\Laravel\Wallet\Tax;
@@ -17,7 +16,7 @@ use Moecasts\Laravel\Wallet\Traits\CanPay;
 use Moecasts\Laravel\Wallet\WalletProxy;
 use Ramsey\Uuid\Uuid;
 
-class Wallet extends Model implements Taxing
+class Wallet extends Model
 {
     use CanPay;
 
@@ -88,30 +87,26 @@ class Wallet extends Model implements Taxing
     {
         $newBalance = $this->attributes['balance'] + $amount;
         $this->balance = $newBalance;
+        $finalBalance = $newBalance / $this->coefficient($this->attributes['currency']);
 
         return
             // update database wallet
             $this->save() &&
 
             // update static wallet
-            WalletProxy::set($this->getKey(), $newBalance);
+            WalletProxy::set($this->getKey(), $finalBalance);
     }
 
     public function getBalanceAttribute(): float
     {
-        $balance = $this->attributes['balance'] / $this->coefficient($this->attributes['currency']);
+        $this->exists or $this->save();
 
-        if ($this instanceof WalletModel) {
-            $this->exists or $this->save();
-
-            if (!WalletProxy::has($this->getKey())) {
-                WalletProxy::set($this->getKey(), (int)($balance ?? 0));
-            }
-
-            return WalletProxy::get($this->getKey());
+        if (! WalletProxy::has($this->getKey())) {
+            $balance = $this->attributes['balance'] / $this->coefficient($this->attributes['currency']);
+            WalletProxy::set($this->getKey(), (float) ($balance ?? 0));
         }
 
-        return $balance;
+        return WalletProxy::get($this->getKey());
     }
 
     public function safeTransfer(Transferable $transferable, float $amount, ?array $meta = null, string $action = Transfer::ACTION_TRANSFER): ?Transfer
@@ -128,7 +123,7 @@ class Wallet extends Model implements Taxing
         $wallet = $transferable->getReceiptWallet($this->currency);
 
         return DB::transaction(function () use ($transferable, $amount, $wallet, $meta, $action) {
-            $fee = Tax::fee($wallet, $amount);
+            $fee = Tax::fee($transferable, $wallet, $amount);
             $withdraw = $this->withdraw($amount + $fee, $meta);
             $deposit = $wallet->deposit($amount, $meta);
             return $this->assemble($transferable, $wallet, $withdraw, $deposit, $action);
@@ -137,7 +132,7 @@ class Wallet extends Model implements Taxing
 
     public function withdraw(float $amount, ?array $meta = null, bool $confirmed = true): Transaction
     {
-        if (!$this->canWithdraw($amount)) {
+        if (! $this->canWithdraw($amount)) {
             throw new InsufficientFunds(trans('wallet::errors.insufficient_funds'));
         }
 
@@ -160,13 +155,6 @@ class Wallet extends Model implements Taxing
 
     protected function assemble(Transferable $transferable, Wallet $wallet, Transaction $withdraw, Transaction $deposit, string $action = Transfer::ACTION_PAID): Transfer
     {
-        if ($this->currency !== $wallet->currency) {
-            throw new DifferentCurrency(trans('wallet::errors.currency_different'));
-        }
-
-        /**
-         * @var Model $wallet
-         */
         return \app('moecasts.wallet::transfer')->create([
             'action' => $action,
             'deposit_id' => $deposit->getKey(),
@@ -182,12 +170,12 @@ class Wallet extends Model implements Taxing
         ]);
     }
 
-    public function forceTransfer(Transferable $transferable, int $amount, ?array $meta = null, string $action = Transfer::ACTION_TRANSFER): Transfer
+    public function forceTransfer(Transferable $transferable, float $amount, ?array $meta = null, string $action = Transfer::ACTION_TRANSFER): Transfer
     {
         $wallet = $transferable->getReceiptWallet($this->currency);
 
         return DB::transaction(function () use ($transferable, $amount, $wallet, $meta, $action) {
-            $fee = Tax::fee($wallet, $amount);
+            $fee = Tax::fee($transferable, $wallet, $amount);
             $withdraw = $this->forceWithdraw($amount + $fee, $meta);
             $deposit = $wallet->deposit($amount, $meta);
             return $this->assemble($transferable, $wallet, $withdraw, $deposit, $action);
@@ -197,8 +185,10 @@ class Wallet extends Model implements Taxing
     public function refreshBalance(): bool
     {
         $balance = $this->getAvailableBalance();
-        WalletProxy::set($this->getKey(), $balance);
+
         $this->attributes['balance'] = $balance;
+
+        WalletProxy::set($this->getKey(), $balance);
 
         return $this->save();
     }
@@ -214,10 +204,5 @@ class Wallet extends Model implements Taxing
     public function coefficient(string $currency = ''): float
     {
         return config('wallet.coefficient.' . $currency , 100.);
-    }
-
-    public function getFeePercent(): float
-    {
-        return 0;
     }
 }

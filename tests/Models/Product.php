@@ -5,6 +5,7 @@ namespace Moecasts\Laravel\Wallet\Test\Models;
 use Illuminate\Database\Eloquent\Model;
 use Moecasts\Laravel\Wallet\Interfaces\Product as ProductInterface;
 use Moecasts\Laravel\Wallet\Interfaces\Refundable;
+use Moecasts\Laravel\Wallet\Interfaces\Taxing;
 use Moecasts\Laravel\Wallet\Models\Wallet;
 use Moecasts\Laravel\Wallet\Traits\HasWallets;
 

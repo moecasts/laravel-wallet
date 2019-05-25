@@ -8,6 +8,9 @@ use Moecasts\Laravel\Wallet\Test\TestCase;
 
 class TransferTest extends TestCase
 {
+    /**
+      * @expectedException     Moecasts\Laravel\Wallet\Exceptions\InsufficientFunds
+      */
     public function testTransfer()
     {
         $user = User::firstOrCreate(['name' => 'Test User']);
@@ -20,10 +23,54 @@ class TransferTest extends TestCase
 
         $this->assertEquals($wallet->balance, 233);
 
-        $wallet->transfer($transferable, 33);
+        $transfer = $wallet->transfer($transferable, 33);
+
+        $transferableWallet = $transferable->getWallet($wallet->currency);
 
         $this->assertEquals($wallet->balance, 200);
-        $this->assertEquals($transferable->getWallet($wallet->currency)->balance, 33);
+        $this->assertEquals($transferableWallet->balance, 33);
+
+        $this->assertEquals($transfer->from->name, $user->name);
+
+        $this->assertEquals($transfer->to->name, $transferable->name);
+
+        $wallet->transfer($transferable, 233);
+    }
+
+    public function testForceTransfer()
+    {
+        $user = User::firstOrCreate(['name' => 'Test User']);
+
+        $transferable = Transferable::firstOrCreate(['name' => 'Transferable Item']);
+
+        $wallet = $user->getWallet('POI');
+
+        $wallet->deposit(1);
+
+        $this->assertEquals($wallet->balance, 1);
+
+        $transfer = $wallet->forceTransfer($transferable, 2);
+
+        $transferableWallet = $transferable->getWallet($wallet->currency);
+
+        $this->assertEquals($wallet->balance, -1);
+        $this->assertEquals($transferableWallet->balance, 2);
+    }
+
+    public function testSafeTransfer()
+    {
+        $user = User::firstOrCreate(['name' => 'Test User']);
+
+        $transferable = Transferable::firstOrCreate(['name' => 'Transferable Item']);
+
+        $wallet = $user->getWallet('POI');
+
+        $wallet->deposit(233);
+
+        $this->assertEquals($wallet->balance, 233);
+
+        $transfer = $wallet->safeTransfer($transferable, 2333);
+        $this->assertEquals($transfer, null);
     }
 
     public function testTransfers()
