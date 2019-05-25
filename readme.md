@@ -1,5 +1,7 @@
 # Wallet
 
+[![Build Status](https://www.travis-ci.org/MoeCasts/laravel-wallet.svg?branch=master)](https://www.travis-ci.org/MoeCasts/laravel-wallet)
+
 ## Feature
 
 - [x] HasWallet
