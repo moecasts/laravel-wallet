@@ -9,10 +9,20 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.5",
+        "orchestra/testbench": "^3.5"
+    },
     "autoload": {
         "psr-4": {
             "Moecasts\\Laravel\\Wallet\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Moecasts\\Laravel\\Wallet\\Test\\": "tests/"
         }
     },
     "extra": {
