@@ -48,6 +48,6 @@ class Transaction extends Model
 
     public function scopeWithdraw($query)
     {
-        return $query->where('type', 'deposit');
+        return $query->where('type', 'withdraw');
     }
 }

@@ -211,7 +211,7 @@ class Wallet extends Model implements Taxing
             ->sum('amount');
     }
 
-    public function coefficient($currency = ''): float
+    public function coefficient(string $currency = ''): float
     {
         return config('wallet.coefficient.' . $currency , 100.);
     }

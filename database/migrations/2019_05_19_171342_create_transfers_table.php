@@ -24,7 +24,7 @@ class CreateTransfersTable extends Migration
             $table->unsignedBigInteger('deposit_id')->comment('收款事务 id');
             $table->unsignedBigInteger('withdraw_id')->comment('付款事务 id');
             $table->uuid('uuid')->unique();
-            $table->boolean('refund')->comment('交易是否完成');
+            $table->boolean('refund')->default(false)->comment('交易是否完成');
             $table->timestamps();
         });
     }

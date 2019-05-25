@@ -27,7 +27,8 @@ trait HasWallets {
 
         if (! $wallet) {
             $wallet = $this->wallets()->create([
-                'currency' => $currency
+                'currency' => $currency,
+                'balance' => 0
             ]);
         }
 

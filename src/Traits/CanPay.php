@@ -2,8 +2,8 @@
 
 namespace Moecasts\Laravel\Wallet\Traits;
 
-use Bavix\Wallet\Exceptions\ProductEnded;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Moecasts\Laravel\Wallet\Exceptions\ProductEnded;
 use Moecasts\Laravel\Wallet\Interfaces\Product;
 use Moecasts\Laravel\Wallet\Interfaces\Refundable;
 use Moecasts\Laravel\Wallet\Models\Transfer;
@@ -41,7 +41,7 @@ trait CanPay {
         }
     }
 
-    public function paid(Refundable $product, string $action = Transfer::ACTION_PAID): ?Transfer
+    public function paid(Product $product, string $action = Transfer::ACTION_PAID): ?Transfer
     {
         $action = [$action];
 
