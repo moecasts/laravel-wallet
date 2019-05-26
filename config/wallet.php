@@ -10,6 +10,15 @@ return [
         'COI' => 100.,
         'POI' => 1
     ],
+    'exchange' => [
+        'COI' => [
+            'POI' => 100,
+            'CNY' => 1
+        ],
+        'CNY' => [
+            'COI' => 1
+        ]
+    ],
     'transaction' => [
         'table' => 'transactions',
         'model' => \Moecasts\Laravel\Wallet\Models\Transaction::class,

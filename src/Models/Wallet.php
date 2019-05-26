@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 use Moecasts\Laravel\Wallet\Exceptions\AmountInvalid;
+use Moecasts\Laravel\Wallet\Exceptions\ExchangeInvalid;
 use Moecasts\Laravel\Wallet\Exceptions\InsufficientFunds;
+use Moecasts\Laravel\Wallet\Interfaces\Assemblable;
+use Moecasts\Laravel\Wallet\Interfaces\Exchangeable;
 use Moecasts\Laravel\Wallet\Interfaces\Transferable;
 use Moecasts\Laravel\Wallet\Models\Transaction;
 use Moecasts\Laravel\Wallet\Tax;
@@ -153,7 +156,7 @@ class Wallet extends Model
         return $this->change(Transaction::TYPE_WITHDRAW, -$amount, $meta, $confirmed);
     }
 
-    protected function assemble(Transferable $transferable, Wallet $wallet, Transaction $withdraw, Transaction $deposit, string $action = Transfer::ACTION_PAID): Transfer
+    protected function assemble(Assemblable $transferable, Wallet $wallet, Transaction $withdraw, Transaction $deposit, string $action = Transfer::ACTION_PAID): Transfer
     {
         return \app('moecasts.wallet::transfer')->create([
             'action' => $action,
@@ -179,6 +182,56 @@ class Wallet extends Model
             $withdraw = $this->forceWithdraw($amount + $fee, $meta);
             $deposit = $wallet->deposit($amount, $meta);
             return $this->assemble($transferable, $wallet, $withdraw, $deposit, $action);
+        });
+    }
+
+    public function exchange(string $currency, float $amount, ?array $meta = null, $action = Transfer::ACTION_EXCHANGE): Transfer
+    {
+        $wallet = $this->holder->getWallet($currency);
+
+        $exchangeRate = config('wallet.exchange.' . $this->currency . '.' . $currency);
+
+        if (! $exchangeRate ||
+            ! $this->holder instanceof Exchangeable) {
+            throw new ExchangeInvalid(trans('wallet::errors.exchange_unsupported'));
+        }
+
+        $exchangedAmount = $amount * $exchangeRate;
+
+        return DB::transaction(function () use ($wallet, $amount, $exchangedAmount, $meta, $action) {
+            $fee = Tax::fee($this->holder, $wallet, $amount);
+            $withdraw = $this->withdraw($amount + $fee, $meta);
+            $deposit = $wallet->deposit($exchangedAmount, $meta);
+            return $this->assemble($this->holder, $wallet, $withdraw, $deposit, $action);
+        });
+    }
+
+    public function safeExchange(string $currency, float $amount, ?array $meta = null, $action = Transfer::ACTION_EXCHANGE): ?Transfer
+    {
+        try {
+            return $this->exchange($currency, $amount, $meta, $action);
+        } catch (\Throwable $throwable) {
+            return null;
+        }
+    }
+
+    public function forceExchange(string $currency, float $amount, ?array $meta = null, $action = Transfer::ACTION_EXCHANGE): Transfer
+    {
+        $wallet = $this->holder->getWallet($currency);
+
+        $exchangeRate = config('wallet.exchange.' . $this->currency . '.' . $currency);
+
+        if (! $exchangeRate) {
+            throw new ExchangeInvalid(trans('wallet::errors.exchange_unsupported'));
+        }
+
+        $exchangedAmount = $amount * $exchangeRate;
+
+        return DB::transaction(function () use ($wallet, $amount, $exchangedAmount, $meta, $action) {
+            $fee = Tax::fee($this->holder, $wallet, $amount);
+            $withdraw = $this->forceWithdraw($amount + $fee, $meta);
+            $deposit = $wallet->deposit($exchangedAmount, $meta);
+            return $this->assemble($this->holder, $wallet, $withdraw, $deposit, $action);
         });
     }
 

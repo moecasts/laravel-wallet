@@ -17,6 +17,7 @@ class Transfer extends Model
     public const ACTION_PAID = 'paid';
     public const ACTION_REFUND = 'refund';
     public const ACTION_GIFT = 'gift';
+    public const ACTION_EXCHANGE = 'exchange';
 
     protected $fillable = [
         'deposit_id',

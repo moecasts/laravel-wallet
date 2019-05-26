@@ -2,6 +2,7 @@
 
 namespace Moecasts\Laravel\Wallet\Test;
 
+use Moecasts\Laravel\Wallet\Test\Models\Exchangeable;
 use Moecasts\Laravel\Wallet\Test\Models\User;
 use Moecasts\Laravel\Wallet\Test\TestCase;
 use Moecasts\Laravel\Wallet\WalletProxy;
@@ -60,7 +61,7 @@ class WalletTest extends TestCase
     }
 
     /**
-      * @expectedException     Moecasts\Laravel\Wallet\Exceptions\InsufficientFunds
+      * @expectedException Moecasts\Laravel\Wallet\Exceptions\InsufficientFunds
       */
     public function testWithdraw(): void
     {
@@ -128,8 +129,85 @@ class WalletTest extends TestCase
 
         $withdrawTransactionKeys = $user->transactions()->withdraw()->get()->pluck('id')->toArray();
         $this->assertEquals($withdrawTransactionKeys, [$firstWithdraw->getKey()]);
+    }
 
+    // Tax fee = 10%
+    public function testExchage()
+    {
+        $exchangeable = Exchangeable::firstOrCreate(['name' => 'Test User']);
 
+        $wallet = $exchangeable->getWallet('COI');
+
+        $wallet->deposit(11);
+
+        $this->assertEquals($wallet->balance, 11);
+
+        $exchange = $wallet->exchange('POI', 10);
+
+        $this->assertEquals($exchange->fromWallet->balance, 0);
+        $this->assertEquals($exchange->toWallet->balance, 1000);
+    }
+
+    /**
+     * @expectedException Moecasts\Laravel\Wallet\Exceptions\ExchangeInvalid
+     */
+    public function testInvalidExchange()
+    {
+        $exchangeable = Exchangeable::firstOrCreate(['name' => 'Test User']);
+
+        $wallet = $exchangeable->getWallet('POI');
+
+        $wallet->deposit(10);
+
+        $this->assertEquals($wallet->balance, 10);
+
+        $exchange = $wallet->exchange('CNY', 10);
+    }
+
+    /**
+     * @expectedException Moecasts\Laravel\Wallet\Exceptions\ExchangeInvalid
+     */
+    public function testInvalidExchangeable()
+    {
+        $exchangeable = User::firstOrCreate(['name' => 'Test User']);
+
+        $wallet = $exchangeable->getWallet('CNY');
+
+        $wallet->deposit(11);
+
+        $this->assertEquals($wallet->balance, 11);
+
+        $exchange = $wallet->exchange('POI', 10);
+    }
+
+    public function testSafeExchange()
+    {
+        $exchangeable = Exchangeable::firstOrCreate(['name' => 'Test User']);
+
+        $wallet = $exchangeable->getWallet('POI');
+
+        $wallet->deposit(10);
+
+        $this->assertEquals($wallet->balance, 10);
+
+        $exchange = $wallet->safeExchange('CNY', 10);
+
+        $this->assertEquals($exchange, null);
+    }
+
+    public function testForceExchange()
+    {
+        $exchangeable = Exchangeable::firstOrCreate(['name' => 'Test User']);
+
+        $wallet = $exchangeable->getWallet('COI');
+
+        $this->assertEquals($wallet->balance, 0);
+
+        $exchange = $wallet->forceExchange('POI', 10);
+
+        // Tax fee = 10%
+        $this->assertEquals($exchange->fromWallet->balance, -11);
+        $this->assertEquals($exchange->toWallet->balance, 1000);
     }
 
     public function testRefreshBalance()
