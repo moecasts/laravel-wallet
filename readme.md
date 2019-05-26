@@ -76,14 +76,20 @@ return [
         'COI',
         'CNY'
     ],
-    'package' => [
-        'coefficient' => [
-            'COI' => 100.,
-            'POI' => 1
+    'coefficient' => [
+        'COI' => 100.,
+        'POI' => 1
+    ],
+    'exchange' => [
+        'COI' => [
+            'POI' => 100,
+            'CNY' => 1
         ],
-    ]
+        'CNY' => [
+            'COI' => 1
+        ]
+    ],
 ];
-
 ```
 
 ### Wallet
@@ -135,7 +141,7 @@ $wallet->deposit(233)
 $wallet->deposit(233, ['description' => 'Deposit Testing'])
 ```
 
-### Deposit
+### Withdraw
 
 ```php
 $wallet->withdraw($amount, $meta = [], $confirmed = true)
@@ -146,6 +152,48 @@ $wallet->withdraw(233, ['description' => 'withdraw Testing'])
 // forceWithdraw though balance is not enough
 $wallet->forceWithdraw(233)
 ```
+
+### Exchage
+Add the `exchange` configurations to your `config/wallet.php`.
+
+```php
+return [
+    'exchange' => [
+        // To be exchanged cuurency
+        'COI' => [
+            // target currency => (one to be exchanged cuurency = ? target currency)
+            'POI' => 100,
+            'CNY' => 1
+        ],
+    ]
+];
+```
+
+Add the `Exchangeable` interface to `User` model.
+
+```php
+use Illuminate\Database\Eloquent\Model;
+use Moecasts\Laravel\Wallet\Interfaces\Exchangeable;
+use Moecasts\Laravel\Wallet\Traits\HasWallets;
+
+class User extends Model implements Exchangeable
+{
+    use HasWallets;
+}
+```
+Then you can do this:
+
+```php
+$wallet = $userWallet->getWallet('COI')
+
+// $wallet->exchange(string $currency, float $mouant)
+$wallet->exchange('POI', 10)
+// This will return null but not exception when it failed.
+$wallet->safeExchange('POI', 10)
+// This will exchange though balance is not enough
+$wallet->forceExchange('POI', 10)
+```
+
 
 ### Transfer
 Add the `Transferable ` interface to `User` model.
