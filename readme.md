@@ -11,6 +11,7 @@
 - [x] HasWallet
 - [x] Deposit
 - [x] Withdraw 
+- [x] Exchange
 - [x] Transfer
 - [x] Pay
 - [x] Refund
