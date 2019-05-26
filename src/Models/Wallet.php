@@ -221,7 +221,8 @@ class Wallet extends Model
 
         $exchangeRate = config('wallet.exchange.' . $this->currency . '.' . $currency);
 
-        if (! $exchangeRate) {
+        if (! $exchangeRate ||
+            ! $this->holder instanceof Exchangeable) {
             throw new ExchangeInvalid(trans('wallet::errors.exchange_unsupported'));
         }
 

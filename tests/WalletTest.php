@@ -210,6 +210,38 @@ class WalletTest extends TestCase
         $this->assertEquals($exchange->toWallet->balance, 1000);
     }
 
+    /**
+     * @expectedException Moecasts\Laravel\Wallet\Exceptions\ExchangeInvalid
+     */
+    public function testInvalidForceExchange()
+    {
+        $exchangeable = Exchangeable::firstOrCreate(['name' => 'Test User']);
+
+        $wallet = $exchangeable->getWallet('POI');
+
+        $wallet->deposit(10);
+
+        $this->assertEquals($wallet->balance, 10);
+
+        $exchange = $wallet->forceExchange('CNY', 10);
+    }
+
+    /**
+     * @expectedException Moecasts\Laravel\Wallet\Exceptions\ExchangeInvalid
+     */
+    public function testInvalidForceExchangeable()
+    {
+        $exchangeable = User::firstOrCreate(['name' => 'Test User']);
+
+        $wallet = $exchangeable->getWallet('CNY');
+
+        $wallet->deposit(11);
+
+        $this->assertEquals($wallet->balance, 11);
+
+        $exchange = $wallet->forceExchange('POI', 10);
+    }
+
     public function testRefreshBalance()
     {
         $user = User::firstOrCreate(['name' => 'Test User']);
