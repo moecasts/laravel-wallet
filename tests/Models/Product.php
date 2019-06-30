@@ -21,7 +21,7 @@ class Product extends Model implements ProductInterface, Refundable
         'quantity'
     ];
 
-    public function canBePaid(): bool
+    public function canBePaid(string $action = 'paid'): bool
     {
         return (int) $this->quantity > 0;
     }

@@ -8,7 +8,7 @@ use Moecasts\Laravel\Wallet\Models\Wallet;
 
 interface Product extends Transferable
 {
-    public function canBePaid(): bool;
+    public function canBePaid(string $action = Transfer::ACTION_PAID): bool;
 
     public function getProductAmount(string $action = Transfer::ACTION_PAID): float;
 
