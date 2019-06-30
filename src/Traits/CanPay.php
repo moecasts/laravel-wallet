@@ -11,7 +11,7 @@ use Moecasts\Laravel\Wallet\Models\Transfer;
 trait CanPay {
     public function pay(Product $product, string $action = Transfer::ACTION_PAID, bool $force = false): Transfer
     {
-        if (! $product->canBePaid($this, $force)) {
+        if (! $product->canBePaid($action)) {
             throw new ProductEnded(trans('wallet::errors.product_stock'));
         }
 
