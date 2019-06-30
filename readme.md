@@ -237,7 +237,7 @@ class Item extends Model implements Product
 {
     use HasWallets;
     
-    public function canBePaid(): bool
+    public function canBePaid(string $action = 'paid'): bool
     {
         return true;
     }
@@ -284,7 +284,7 @@ class Item extends Model implements Product
         return $this->belongsTo(User::class, 'user_id');
     }
     
-    public function canBePaid(): bool
+    public function canBePaid(string $action = 'paid'): bool
     {
         return true;
     }
@@ -346,7 +346,7 @@ class Item extends Model implements Product, Refundable
 {
     use HasWallets;
     
-    public function canBePaid(): bool
+    public function canBePaid(string $action = 'paid'): bool
     {
         return true;
     }
