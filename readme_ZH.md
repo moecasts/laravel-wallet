@@ -3,60 +3,62 @@
 - [中文](readme_ZH.md)
 - [English](readme.md)
 
+## 自动化测试
+
 [![Build Status](https://www.travis-ci.org/MoeCasts/laravel-wallet.svg?branch=master)](https://www.travis-ci.org/MoeCasts/laravel-wallet)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/build.png?b=master)](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/build-status/master)
 [![Code Intelligence Status](https://scrutinizer-ci.com/g/MoeCasts/laravel-wallet/badges/code-intelligence.svg?b=master)](https://scrutinizer-ci.com/code-intelligence)
 
-## Feature
+## 功能
 
 - [x] HasWallet
-- [x] Deposit
-- [x] Withdraw
-- [x] Exchange
-- [x] Transfer
-- [x] Pay
-- [x] Refund
+- [x] 充值
+- [x] 取款
+- [x] 兑换
+- [x] 转账
+- [x] 支付
+- [x] 退款
 
-## Installation
+## 安装
 
-### Required
+### 需求
 
 - PHP 7.0+
 - Laravel 5.5+
 
-You can install the package using composer
+通过 `composer` 安装：
 
 ```php
 composer require moecasts/laravel-wallet
 ```
 
-If you are using Laravel < 5.5, you need to add provider to your config/app.php providers array:
+如果你是用 `Laravel` 的版本 < 5.5，则需要手动将 `provide` 添加到 `config/app.php providers` 数组中
 
 ```php
 Moecasts\Laravel\Wallet\WalletServiceProvider,
 ```
 
-Publish the mirgrations file:
+发布迁移文件：
 
 ```bash
 php artisan vendor:publish --tag=wallet-migrations
 ```
 
-As optional if you want to modify the default configuration, you can publish the configuration file:
+如果你想修改默认配置，可以运行下列命令发布配置文件后修改：
 
 ```bash
 php artisan vendor:publish --tag=wallet-config
 ```
 
-And create tables:
+数据表迁移：
 
 ```bash
 php artisan migrate
 ```
 
-Finally, add feature trait into User model:
+最后，添加 `Trait` 到 `User Model` 中：
 
 ```php
 use Moecasts\Laravel\Wallet\Traits\HasWallets;
@@ -67,11 +69,11 @@ class User extends Model
 }
 ```
 
-## Configurations
+## 配置
 
-### Currencies
+### 货币类型
 
-Here you can set supported currencies and its coefficient.
+你可以设置允许使用的货币以及它们的系数和汇率。
 
 ```php
 return [
@@ -96,9 +98,9 @@ return [
 ];
 ```
 
-### Wallet
+### 钱包
 
-Here you can add default wallet.
+你可以按照下列的方式设置默认钱包。
 
 ```php
 return [
@@ -113,30 +115,30 @@ return [
 
 ```
 
-## Usage
+## 用法
 
-### Get Wallet
+### 获取钱包
 
-This function will return the wallet of the currency if the currency is supported.
+如果货币在支持列表中，则会返回该货币类型的钱包。
 
 ```php
 $wallet = $user->getWallet($currency)
 
 $wallet->balance
 
-// return the user transfers of all his wallets
+// 返回用户转账记录
 $user->transfers
-// return the wallet transfers
+// 返回钱包转账记录
 $wallet->transfers
 
-// return the user transactions of all his wallets
+// 返回用户的收支记录
 $user->transactions
-// return the wallet transactions
+// 返回钱包的收支记录
 $wallet->transactions
 
 ```
 
-### Deposit
+### 充值
 
 ```php
 $wallet->deposit($amount, $meta = [], $confirmed = true)
@@ -145,7 +147,7 @@ $wallet->deposit(233)
 $wallet->deposit(233, ['description' => 'Deposit Testing'])
 ```
 
-### Withdraw
+### 取款
 
 ```php
 $wallet->withdraw($amount, $meta = [], $confirmed = true)
@@ -153,13 +155,13 @@ $wallet->withdraw($amount, $meta = [], $confirmed = true)
 $wallet->withdraw(233)
 $wallet->withdraw(233, ['description' => 'withdraw Testing'])
 
-// forceWithdraw though balance is not enough
+// 强制取款（即使余额不足也会生效）
 $wallet->forceWithdraw(233)
 ```
 
-### Exchage
+### 兑换
 
-Add the `exchange` configurations to your `config/wallet.php`.
+添加 `exchange` 配置到 `config/wallet.php`.
 
 ```php
 return [
@@ -174,7 +176,7 @@ return [
 ];
 ```
 
-Add the `Exchangeable` interface to `User` model.
+添加 `Exchangeable` Interface 到 `User` Model.
 
 ```php
 use Illuminate\Database\Eloquent\Model;
@@ -187,7 +189,7 @@ class User extends Model implements Exchangeable
 }
 ```
 
-Then you can do this:
+之后可以这么用：
 
 ```php
 $wallet = $userWallet->getWallet('COI')
@@ -200,9 +202,9 @@ $wallet->safeExchange('POI', 10)
 $wallet->forceExchange('POI', 10)
 ```
 
-### Transfer
+### 转账
 
-Add the `Transferable ` interface to `User` model.
+添加 `Transferable` Interface 到 `User` Model.
 
 ```php
 use Moecasts\Laravel\Wallet\Interfaces\Transferable;
@@ -214,7 +216,7 @@ class User extends Model implements Transferable
 }
 ```
 
-Then you can do this:
+之后可以这么用：
 
 ```php
 $user = User::find(1);
@@ -225,15 +227,15 @@ $wallet = $user->getWallet($currency);
 // $wallet->transfer(Transferable $transferable,float $amount,?array $meta = [], string $action = 'transfer'))
 $wallet->transfer($transferable, 233);
 
-// This will return null but not exception when it failed.
+// 当有错误发生时返回 null
 $wallet->safeTransfer($transferable, 233);
 ```
 
-Wallet with the same currency of the `Transferable` will receive the payment.
+`Transferable` 所拥有的同类型货币的钱包将收到货款。
 
-### Pay
+### 支付
 
-Add the `HasWallets` trait and `Product` interface to `Item` model.
+添加 `HasWallets` Trait 和 `Product` 到 `Item` Model.
 
 ```php
 use Moecasts\Laravel\Wallet\Interfaces\Product;
@@ -274,9 +276,9 @@ class Item extends Model implements Product
 }
 ```
 
-If you want to pay to the author, you can do this.
+如果你想支付给作者，你可以这样做：
 
-As optional you can remove `HasWallets` trait.
+如果你不想让商品拥有钱包则可以移除 `HasWallets` Trait。
 
 ```php
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -321,7 +323,7 @@ class Item extends Model implements Product
 }
 ```
 
-Then you can do this.
+之后可以这么用：
 
 ```php
 $user = User::first();
@@ -340,9 +342,9 @@ $wallet->safePay($item, 'paid')
 $wallet->paid($item, $action = 'paid')
 ```
 
-## Refund
+## 退款
 
-Add the `Refundable` interface to `Item` model.
+添加 `Refundable` Interface 到 `Item` Model.
 
 ```php
 use Moecasts\Laravel\Wallet\Interfaces\Product;
@@ -384,7 +386,7 @@ class Item extends Model implements Product, Refundable
 }
 ```
 
-Then you can do this.
+之后可以这么用：
 
 ```php
 // $wallet->refund(Refundable $item, string $action = 'paid')
